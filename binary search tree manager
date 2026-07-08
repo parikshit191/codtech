@@ -1,0 +1,231 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+// Structure for Book
+struct Book
+{
+    int id;
+    char title[50];
+    char author[50];
+    struct Book *left;
+    struct Book *right;
+};
+
+// Create a new node
+struct Book* createBook(int id, char title[], char author[])
+{
+    struct Book *newNode = (struct Book*)malloc(sizeof(struct Book));
+
+    newNode->id = id;
+    strcpy(newNode->title, title);
+    strcpy(newNode->author, author);
+    newNode->left = NULL;
+    newNode->right = NULL;
+
+    return newNode;
+}
+
+// Insert into BST
+struct Book* insert(struct Book *root, int id, char title[], char author[])
+{
+    if(root == NULL)
+        return createBook(id, title, author);
+
+    if(id < root->id)
+        root->left = insert(root->left, id, title, author);
+    else if(id > root->id)
+        root->right = insert(root->right, id, title, author);
+    else
+        printf("Book ID already exists!\n");
+
+    return root;
+}
+
+// Display Books (Inorder)
+void display(struct Book *root)
+{
+    if(root != NULL)
+    {
+        display(root->left);
+
+        printf("\nBook ID : %d", root->id);
+        printf("\nTitle   : %s", root->title);
+        printf("\nAuthor  : %s\n", root->author);
+
+        display(root->right);
+    }
+}
+
+// Search Book
+struct Book* search(struct Book *root, int id)
+{
+    if(root == NULL || root->id == id)
+        return root;
+
+    if(id < root->id)
+        return search(root->left, id);
+
+    return search(root->right, id);
+}
+
+// Find Minimum Node
+struct Book* findMin(struct Book *root)
+{
+    while(root && root->left != NULL)
+        root = root->left;
+
+    return root;
+}
+
+// Delete Book
+struct Book* deleteBook(struct Book *root, int id)
+{
+    if(root == NULL)
+        return root;
+
+    if(id < root->id)
+        root->left = deleteBook(root->left, id);
+
+    else if(id > root->id)
+        root->right = deleteBook(root->right, id);
+
+    else
+    {
+        if(root->left == NULL)
+        {
+            struct Book *temp = root->right;
+            free(root);
+            return temp;
+        }
+
+        else if(root->right == NULL)
+        {
+            struct Book *temp = root->left;
+            free(root);
+            return temp;
+        }
+
+        struct Book *temp = findMin(root->right);
+
+        root->id = temp->id;
+        strcpy(root->title, temp->title);
+        strcpy(root->author, temp->author);
+
+        root->right = deleteBook(root->right, temp->id);
+    }
+
+    return root;
+}
+
+// Find Maximum Node
+struct Book* findMax(struct Book *root)
+{
+    while(root && root->right != NULL)
+        root = root->right;
+
+    return root;
+}
+
+int main()
+{
+    struct Book *root = NULL;
+    int choice, id;
+    char title[50], author[50];
+    struct Book *result;
+
+    while(1)
+    {
+        printf("\n====== LIBRARY BST MANAGEMENT ======\n");
+        printf("1. Insert Book\n");
+        printf("2. Search Book\n");
+        printf("3. Display Books\n");
+        printf("4. Delete Book\n");
+        printf("5. Minimum Book ID\n");
+        printf("6. Maximum Book ID\n");
+        printf("7. Exit\n");
+
+        printf("Enter Choice: ");
+        scanf("%d", &choice);
+
+        switch(choice)
+        {
+            case 1:
+                printf("Enter Book ID: ");
+                scanf("%d", &id);
+
+                getchar();
+
+                printf("Enter Title: ");
+                fgets(title, sizeof(title), stdin);
+                title[strcspn(title, "\n")] = '\0';
+
+                printf("Enter Author: ");
+                fgets(author, sizeof(author), stdin);
+                author[strcspn(author, "\n")] = '\0';
+
+                root = insert(root, id, title, author);
+                break;
+
+            case 2:
+                printf("Enter Book ID: ");
+                scanf("%d", &id);
+
+                result = search(root, id);
+
+                if(result)
+                {
+                    printf("\nBook Found!\n");
+                    printf("ID     : %d\n", result->id);
+                    printf("Title  : %s\n", result->title);
+                    printf("Author : %s\n", result->author);
+                }
+                else
+                {
+                    printf("\nBook Not Found!\n");
+                }
+                break;
+
+            case 3:
+                printf("\nLibrary Books (Sorted by Book ID)\n");
+                display(root);
+                break;
+
+            case 4:
+                printf("Enter Book ID to Delete: ");
+                scanf("%d", &id);
+                root = deleteBook(root, id);
+                printf("Book Deleted (if it existed).\n");
+                break;
+
+            case 5:
+                result = findMin(root);
+
+                if(result)
+                    printf("Minimum Book ID = %d\n", result->id);
+                else
+                    printf("Library is Empty!\n");
+
+                break;
+
+            case 6:
+                result = findMax(root);
+
+                if(result)
+                    printf("Maximum Book ID = %d\n", result->id);
+                else
+                    printf("Library is Empty!\n");
+
+                break;
+
+            case 7:
+                printf("Thank You!\n");
+                exit(0);
+
+            default:
+                printf("Invalid Choice!\n");
+        }
+    }
+
+    return 0;
+}
